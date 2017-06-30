@@ -30,6 +30,11 @@ type Tree interface {
 	// FindByValue finds a node whose value matches the provided one by reflect.DeepEqual,
 	// returns nil if not found.
 	FindByValue(value Value) Tree
+    Parent() Tree
+	GetMeta() MetaValue
+    GetValue() Value
+	DeleteBranch(meta MetaValue)
+	// String renders the tree or subtree as a string.
 	// String renders the tree or subtree as a string.
 	String() string
 	// Bytes renders the tree or subtree as byteslice.
@@ -74,8 +79,29 @@ func (n *node) AddBranch(v Value) Tree {
 	return branch
 }
 
+func (n *node) Parent() Tree {
+	return n.Root
+}
+
+func (n *node) DeleteBranch(meta MetaValue) {
+	for i, v := range n.Nodes {
+		if reflect.DeepEqual(v.Meta, meta){
+			n.Nodes = append(n.Nodes[:i], n.Nodes[i+1:]...)
+		}
+	}
+}
+
+func (n *node) GetMeta() MetaValue{
+	return n.Meta
+}
+
+func (n *node) GetValue() Value{
+	return n.Value
+}
+
 func (n *node) AddMetaBranch(meta MetaValue, v Value) Tree {
 	branch := &node{
+		Root: n,
 		Meta:  meta,
 		Value: v,
 	}
@@ -91,6 +117,7 @@ func (n *node) Branch() Tree {
 func (n *node) FindByMeta(meta MetaValue) Tree {
 	for _, node := range n.Nodes {
 		if reflect.DeepEqual(node.Meta, meta) {
+
 			return node
 		}
 		if v := node.FindByMeta(meta); v != nil {
