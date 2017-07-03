@@ -30,7 +30,11 @@ type Tree interface {
 	// FindByValue finds a node whose value matches the provided one by reflect.DeepEqual,
 	// returns nil if not found.
 	FindByValue(value Value) Tree
-    Parent() Tree
+	GetChildrenCount() int
+	GetChild(index int) Tree
+	GetTag() int
+
+	Parent() Tree
 	GetMeta() MetaValue
     GetValue() Value
 	DeleteBranch(meta MetaValue)
@@ -41,10 +45,16 @@ type Tree interface {
 	Bytes() []byte
 }
 
+const (
+	BRANCH = iota
+	LEAF
+)
+
 type node struct {
 	Root  *node
 	Meta  MetaValue
 	Value Value
+	Tag   int
 	Nodes []*node
 }
 
@@ -52,6 +62,7 @@ func (n *node) AddNode(v Value) Tree {
 	n.Nodes = append(n.Nodes, &node{
 		Root:  n,
 		Value: v,
+		Tag :LEAF,
 	})
 	if n.Root != nil {
 		return n.Root
@@ -64,6 +75,7 @@ func (n *node) AddMetaNode(meta MetaValue, v Value) Tree {
 		Root:  n,
 		Meta:  meta,
 		Value: v,
+		Tag :LEAF,
 	})
 	if n.Root != nil {
 		return n.Root
@@ -74,6 +86,7 @@ func (n *node) AddMetaNode(meta MetaValue, v Value) Tree {
 func (n *node) AddBranch(v Value) Tree {
 	branch := &node{
 		Value: v,
+		Tag :BRANCH,
 	}
 	n.Nodes = append(n.Nodes, branch)
 	return branch
@@ -104,6 +117,7 @@ func (n *node) AddMetaBranch(meta MetaValue, v Value) Tree {
 		Root: n,
 		Meta:  meta,
 		Value: v,
+		Tag :BRANCH,
 	}
 	n.Nodes = append(n.Nodes, branch)
 	return branch
@@ -125,6 +139,17 @@ func (n *node) FindByMeta(meta MetaValue) Tree {
 		}
 	}
 	return nil
+}
+
+func (n *node) GetChildrenCount() int{
+
+	return len(n.Nodes)
+}
+func (n *node) GetTag() int{
+	return n.Tag
+}
+func (n *node) GetChild(index int) Tree{
+	return n.Nodes[index]
 }
 
 func (n *node) FindByValue(value Value) Tree {
