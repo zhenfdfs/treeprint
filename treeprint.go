@@ -36,8 +36,9 @@ type Tree interface {
 
 	Parent() Tree
 	GetMeta() MetaValue
-    GetValue() Value
+	GetValue() Value
 	DeleteBranch(meta MetaValue)
+	SetValue(v Value)
 	// String renders the tree or subtree as a string.
 	// String renders the tree or subtree as a string.
 	String() string
@@ -62,7 +63,7 @@ func (n *node) AddNode(v Value) Tree {
 	n.Nodes = append(n.Nodes, &node{
 		Root:  n,
 		Value: v,
-		Tag :LEAF,
+		Tag:   LEAF,
 	})
 	if n.Root != nil {
 		return n.Root
@@ -75,7 +76,7 @@ func (n *node) AddMetaNode(meta MetaValue, v Value) Tree {
 		Root:  n,
 		Meta:  meta,
 		Value: v,
-		Tag :LEAF,
+		Tag:   LEAF,
 	})
 	if n.Root != nil {
 		return n.Root
@@ -86,7 +87,7 @@ func (n *node) AddMetaNode(meta MetaValue, v Value) Tree {
 func (n *node) AddBranch(v Value) Tree {
 	branch := &node{
 		Value: v,
-		Tag :BRANCH,
+		Tag:   BRANCH,
 	}
 	n.Nodes = append(n.Nodes, branch)
 	return branch
@@ -98,26 +99,30 @@ func (n *node) Parent() Tree {
 
 func (n *node) DeleteBranch(meta MetaValue) {
 	for i, v := range n.Nodes {
-		if reflect.DeepEqual(v.Meta, meta){
+		if reflect.DeepEqual(v.Meta, meta) {
 			n.Nodes = append(n.Nodes[:i], n.Nodes[i+1:]...)
 		}
 	}
 }
 
-func (n *node) GetMeta() MetaValue{
+func (n *node) GetMeta() MetaValue {
 	return n.Meta
 }
 
-func (n *node) GetValue() Value{
+func (n *node) GetValue() Value {
 	return n.Value
+}
+
+func (n *node) SetValue(v Value) {
+	n.Value = v
 }
 
 func (n *node) AddMetaBranch(meta MetaValue, v Value) Tree {
 	branch := &node{
-		Root: n,
+		Root:  n,
 		Meta:  meta,
 		Value: v,
-		Tag :BRANCH,
+		Tag:   BRANCH,
 	}
 	n.Nodes = append(n.Nodes, branch)
 	return branch
@@ -141,14 +146,14 @@ func (n *node) FindByMeta(meta MetaValue) Tree {
 	return nil
 }
 
-func (n *node) GetChildrenCount() int{
+func (n *node) GetChildrenCount() int {
 
 	return len(n.Nodes)
 }
-func (n *node) GetTag() int{
+func (n *node) GetTag() int {
 	return n.Tag
 }
-func (n *node) GetChild(index int) Tree{
+func (n *node) GetChild(index int) Tree {
 	return n.Nodes[index]
 }
 
